@@ -36,19 +36,42 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var web3_js_1 = require("@solana/web3.js");
-var publicKey = new web3_js_1.PublicKey("CmdS1ENQC2Y34nJR9W1ZApMtZkT15VEuoJk8GjpTdYuC");
-var connection = new web3_js_1.Connection("https://api.devnet.solana.com", "confirmed");
-(function () { return __awaiter(void 0, void 0, void 0, function () {
-    var balanceInLamports, balanceInSOL;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, connection.getBalance(publicKey)];
-            case 1:
-                balanceInLamports = _a.sent();
-                balanceInSOL = balanceInLamports / web3_js_1.LAMPORTS_PER_SOL;
-                console.log("\uD83D\uDCB0 Finished! The balance for the wallet at address ".concat(publicKey, " is ").concat(balanceInSOL, "!"));
-                return [2 /*return*/];
-        }
+var web3 = require("@solana/web3.js");
+require("dotenv/config");
+var helpers_1 = require("@solana-developers/helpers");
+var PING_PROGRAM_ADDRESS = "ChT1B39WKLS8qUrkLvFDXMhEJ4F1XZzwUNHUt4AU9aVa";
+var PING_PROGRAM_DATA_ADDRESS = "Ah9K7dQ8EHaZqcAsgBW8w37yN2eAy3koFmUn4x3CJtod";
+var payer = (0, helpers_1.getKeypairFromEnvironment)("SECRET_KEY");
+var connection = new web3.Connection(web3.clusterApiUrl("devnet"));
+function main() {
+    return __awaiter(this, void 0, void 0, function () {
+        var newBalance, transaction, programId, pingProgramDataId, instruction, signature;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, (0, helpers_1.airdropIfRequired)(connection, payer.publicKey, 1 * web3.LAMPORTS_PER_SOL, 0.5 * web3.LAMPORTS_PER_SOL)];
+                case 1:
+                    newBalance = _a.sent();
+                    transaction = new web3.Transaction();
+                    programId = new web3.PublicKey(PING_PROGRAM_ADDRESS);
+                    pingProgramDataId = new web3.PublicKey(PING_PROGRAM_DATA_ADDRESS);
+                    instruction = new web3.TransactionInstruction({
+                        keys: [
+                            {
+                                pubkey: pingProgramDataId,
+                                isSigner: false,
+                                isWritable: true,
+                            },
+                        ],
+                        programId: programId,
+                    });
+                    transaction.add(instruction);
+                    return [4 /*yield*/, web3.sendAndConfirmTransaction(connection, transaction, [payer])];
+                case 2:
+                    signature = _a.sent();
+                    console.log("\u2705 Transaction completed! Signature is ".concat(signature));
+                    return [2 /*return*/];
+            }
+        });
     });
-}); })();
+}
+main();

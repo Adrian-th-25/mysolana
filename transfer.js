@@ -37,17 +37,46 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var web3_js_1 = require("@solana/web3.js");
-var publicKey = new web3_js_1.PublicKey("CmdS1ENQC2Y34nJR9W1ZApMtZkT15VEuoJk8GjpTdYuC");
+require("dotenv/config");
+var helpers_1 = require("@solana-developers/helpers");
+//   const suppliedToPubkey = process.argv[2] || null;
+//   if (!suppliedToPubkey) {
+//     console.log(`Please provide a public key to send to`);
+//     process.exit(1);
+//   }
+var suppliedToPubkey = new web3_js_1.PublicKey("CenYq6bDRB7p73EjsPEpiYN7uveyPUTdXkDkgUduboaN");
+var senderKeypair = (0, helpers_1.getKeypairFromEnvironment)("SECRET_KEY");
+console.log("suppliedToPubkey: ".concat(suppliedToPubkey));
+var toPubkey = new web3_js_1.PublicKey(suppliedToPubkey);
 var connection = new web3_js_1.Connection("https://api.devnet.solana.com", "confirmed");
+console.log("\u2705 Loaded our own keypair, the destination public key, and connected to Solana");
+var transaction = new web3_js_1.Transaction();
+var LAMPORTS_TO_SEND = 5000;
+var sendSolInstruction = web3_js_1.SystemProgram.transfer({
+    fromPubkey: senderKeypair.publicKey,
+    toPubkey: toPubkey,
+    lamports: LAMPORTS_TO_SEND,
+});
+transaction.add(sendSolInstruction);
 (function () { return __awaiter(void 0, void 0, void 0, function () {
-    var balanceInLamports, balanceInSOL;
+    var signature;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, connection.getBalance(publicKey)];
+            case 0: 
+            // const balance = await connection.getBalance(senderKeypair.publicKey);
+            // console.log("Wallet balance:", balance / LAMPORTS_PER_SOL, "SOL");
+            return [4 /*yield*/, connection.requestAirdrop(senderKeypair.publicKey, 2 * web3_js_1.LAMPORTS_PER_SOL)];
             case 1:
-                balanceInLamports = _a.sent();
-                balanceInSOL = balanceInLamports / web3_js_1.LAMPORTS_PER_SOL;
-                console.log("\uD83D\uDCB0 Finished! The balance for the wallet at address ".concat(publicKey, " is ").concat(balanceInSOL, "!"));
+                // const balance = await connection.getBalance(senderKeypair.publicKey);
+                // console.log("Wallet balance:", balance / LAMPORTS_PER_SOL, "SOL");
+                _a.sent();
+                return [4 /*yield*/, (0, web3_js_1.sendAndConfirmTransaction)(connection, transaction, [
+                        senderKeypair,
+                    ])];
+            case 2:
+                signature = _a.sent();
+                console.log("\uD83D\uDCB8 Finished! Sent ".concat(LAMPORTS_TO_SEND, " to the address ").concat(toPubkey, ". "));
+                console.log("Transaction signature is ".concat(signature, "!"));
                 return [2 /*return*/];
         }
     });
